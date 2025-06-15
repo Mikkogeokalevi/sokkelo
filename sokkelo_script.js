@@ -121,8 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
         endCellActivated = false;
         updateLivesDisplay();
     }
-    
-    // ##### MUOKATTU FUNKTIO #####
+
+    // ##### KORJATTU FUNKTIO #####
     function createMazeHTML() {
         gameArea.innerHTML = ''; // TYHJENNETÄÄN KOKO PELIALUE
         gameArea.style.gridTemplateColumns = `repeat(${mazeSize}, 1fr)`;
@@ -134,12 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Määritä luokat solutyypin perusteella
                 switch (cellType) {
                     case CELL_TYPES.WALL:
-                        const isBorder = rowIndex === 0 || rowIndex === mazeSize - 1 || colIndex === 0 || colIndex === mazeSize - 1;
-                        if (isBorder) {
-                            cell.classList.add('steel-wall');
-                        } else {
-                            cell.classList.add('wall');
-                        }
+                        cell.classList.add('wall');
                         break;
                     case CELL_TYPES.DIRT:
                         cell.classList.add('dirt');
@@ -157,6 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         cell.innerHTML = '💣';
                         break;
                     case CELL_TYPES.END:
+                        // Tarkistetaan, onko maali aktivoitu. Jos on, näytetään se.
+                        // Jos ei, se on piilossa mullan alla.
                         if (endCellActivated) {
                             cell.classList.add('end');
                         } else {
