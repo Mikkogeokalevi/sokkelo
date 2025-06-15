@@ -450,7 +450,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function gameOver(message) {
         messageDisplay.textContent = `Peli ohi! ${message}`;
+        // Poistetaan molemmat kuuntelijat pelin päättyessä
         document.removeEventListener('keydown', handleKeyPress);
+        gameArea.removeEventListener('touchstart', handleTouchStart);
+        gameArea.removeEventListener('touchmove', handleTouchMove);
+        gameArea.removeEventListener('touchend', handleTouchEnd);
     }
 
     function initGame() {
@@ -459,15 +463,17 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDisplay.textContent = `Taso ${currentLevelIndex + 1}. Kerää ${currentRequiredDiamonds} timanttia!`;
         updateLivesDisplay();
         
+        // Varmistetaan, että kuuntelijat ovat kunnossa
         document.removeEventListener('keydown', handleKeyPress);
         document.addEventListener('keydown', handleKeyPress);
         
-        // Poista vanhat kosketuskuuntelijat varmuuden vuoksi
+        // Poistetaan vanhat kosketuskuuntelijat varmuuden vuoksi ennen uusien lisäämistä
         gameArea.removeEventListener('touchstart', handleTouchStart);
         gameArea.removeEventListener('touchmove', handleTouchMove);
         gameArea.removeEventListener('touchend', handleTouchEnd);
 
-        // Lisää kosketuskuuntelijat
+        // Lisätään kosketuskuuntelijat
+        // passive: false on tärkeä, jotta e.preventDefault() toimii kunnolla iOS:ssa
         gameArea.addEventListener('touchstart', handleTouchStart, { passive: false });
         gameArea.addEventListener('touchmove', handleTouchMove, { passive: false });
         gameArea.addEventListener('touchend', handleTouchEnd);
@@ -491,13 +497,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleTouchStart(e) {
         if (messageDisplay.textContent.startsWith("Peli ohi!")) return;
+        // Tallennetaan ensimmäisen kosketuksen koordinaatit
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
-        e.preventDefault(); // Estä sivun vieritys
+        // Estetään sivun vieritys, erityisesti iOS:ssa
+        e.preventDefault(); 
     }
 
     function handleTouchMove(e) {
-        e.preventDefault(); // Estä sivun vieritys pyyhkäisyn aikana
+        // Estetään sivun vieritys pyyhkäisyn aikana
+        e.preventDefault(); 
     }
 
     function handleTouchEnd(e) {
@@ -508,6 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dx = touchEndX - touchStartX;
         const dy = touchEndY - touchStartY;
 
+        // Tarkistetaan, oliko kyseessä riittävän pitkä pyyhkäisy
         if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > swipeThreshold) {
             // Vaakasuuntainen pyyhkäisy
             if (dx > 0) {
@@ -523,7 +533,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 movePlayer(0, -1); // Ylös
             }
         }
-        e.preventDefault(); // Estä oletustoiminto (esim. klikkaus, jos ei pyyhkäisyä)
+        // Estetään oletustoiminto (esim. klikkaus, jos ei pyyhkäisyä)
+        e.preventDefault(); 
     }
     // --- KOSKETUKSEN KÄSITTELYN LOHKO PÄÄTTYY ---
     
