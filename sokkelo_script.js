@@ -39,9 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 [1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1],
                 [1, 2, 2, 1, 2, 3, 2, 7, 2, 3, 2, 1, 2, 2, 1], // Pommi (7) täällä!
                 [1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1],
-                [1, 2, 2, 1, 2, 4, 2, 2, 2, 2, 2, 1, 2, 2, 1],
+                [1, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 1, 2, 2, 1],
                 [1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1],
-                [1, 2, 2, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 2, 1],
+                [1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1],
                 [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
                 [1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1],
                 [1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1],
@@ -191,10 +191,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const rockPushDirection = dx !== 0 ? dx : 0;
             const rockNewCol = newCol + rockPushDirection;
 
+            // Kiven työntäminen, jos työnnetään tyhjään tai pommin päälle
             if (dy === 0 &&
                 rockNewCol >= 0 && rockNewCol < mazeSize &&
-                (maze[newRow][rockNewCol] === CELL_TYPES.EMPTY || maze[newCol][rockNewCol] === CELL_TYPES.BOMB)) {
+                (maze[newRow][rockNewCol] === CELL_TYPES.EMPTY || maze[newRow][rockNewCol] === CELL_TYPES.BOMB)) {
 
+                // Jos kivi työnnetään pommin päälle, aktivoi pommi
                 if (maze[newRow][rockNewCol] === CELL_TYPES.BOMB) {
                     activateBomb(newRow, rockNewCol);
                 }
@@ -225,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (targetCellType === CELL_TYPES.BOMB) {
-            // Pelaaja yrittää astua pommin päälle. Aktivoi pommi ja estä liike pommin kohdalle.
+            // Jos pelaaja yrittää astua pommin päälle, aktivoi pommi ja estä liike
             if (!activeBombs.some(bomb => bomb.row === newRow && bomb.col === newCol)) {
                 activateBomb(newRow, newCol);
             }
@@ -368,33 +370,27 @@ document.addEventListener('DOMContentLoaded', () => {
                                 newBombEl.innerHTML = '💣';
                             }
 
-                            // Jos pelaaja on uudessa pommin paikassa, räjäytä välittömästi.
-                            // Muuten, aktivoi pommi viiveellä.
+                            // Jos pelaaja on uudessa pommin paikassa, räjäytä välittömästi (pommi putosi pelaajan päälle)
                             if (playerPosition.row === r + 1 && playerPosition.col === c) {
                                 messageDisplay.textContent = "💥 Pommi putosi päällesi! Räjähti!";
                                 setTimeout(() => messageDisplay.textContent = "", 2000);
                                 explodeBomb(r + 1, c);
                                 playerDies();
                                 return; // Pysäytä painovoima, peli jatkuu vasta respawnin jälkeen
-                            } else {
-                                // Aktivoi pommi vasta kun se on pudonnut ja pysähtynyt
-                                activateBomb(r + 1, c);
                             }
-
+                            // TÄRKEÄ MUUTOS: ÄLÄ AKITVOI POMMIA TÄSSÄ, KOSKA SE EI OLE VUOROVAIKUTUKSESSA PELAAJAN KANSSA
+                            // Pommin aktivointi tapahtuu vasta, kun pelaaja kävelee sen vierestä tai työntää sen päälle.
                         }
-                        // Jos pommi putoaa toisen pommin päälle, alempi pommi aktivoituu
+                        // Jos pommi putoaa toisen pommin päälle
                         else if (cellBelowType === CELL_TYPES.BOMB) {
+                            // Jos alempi pommi ei ole aktiivinen, aktivoi se
                             if (!activeBombs.some(bomb => bomb.row === r + 1 && bomb.col === c)) {
                                 activateBomb(r + 1, c);
                             }
-                            // Ylempi pommi ei katoa, se vain "lepää" alemman päällä eikä pudonnut
                         }
-                        // Jos pommi pysähtyy jonkin muun kuin tyhjän solun päälle (dirt, rock, wall), aktivoi se
-                        else if (cellBelowType === CELL_TYPES.DIRT || cellBelowType === CELL_TYPES.ROCK || cellBelowType === CELL_TYPES.WALL) {
-                             if (!activeBombs.some(bomb => bomb.row === r && bomb.col === c)) {
-                                activateBomb(r, c); // Aktivoi pommi nykyisessä sijainnissa
-                            }
-                        }
+                        // Jos pommi pysähtyy jonkin muun kuin tyhjän solun päälle (dirt, rock, wall)
+                        // TÄRKEÄ MUUTOS: ÄLÄ AKITVOI POMMIA TÄSSÄ AUTOMAATTISESTI
+                        // Aktivoi pommi vain, kun pelaaja vuorovaikuttaa sen kanssa.
                     }
                 }
             }
