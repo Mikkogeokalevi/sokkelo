@@ -123,6 +123,8 @@ h2 {
     background-color: #D22B2B; /* Punertava */
     border: 1px solid #A01C1C;
     position: relative;
+    /* Lisää siirtymä, jotta tikitys-animaatio on sulavampi */
+    transition: background-color 0.2s ease-in-out;
 }
 .cell.bomb::after {
     content: '💣';
@@ -132,6 +134,17 @@ h2 {
     left: 50%;
     transform: translate(-50%, -50%);
 }
+
+/* UUSI: Pommin aktivoitu tila (tikittää) */
+.cell.bomb.active {
+    animation: bomb-pulse 0.5s infinite alternate; /* Vilkkuu punaisen ja tummemman punaisen välillä */
+}
+
+@keyframes bomb-pulse {
+    from { background-color: #D22B2B; }
+    to { background-color: #A01C1C; }
+}
+
 
 /* Timantin solu on nyt mullan (dirt) kaltainen ja piilossa */
 .cell.diamond {
