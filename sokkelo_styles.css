@@ -118,6 +118,21 @@ h2 {
     color: #333;
 }
 
+/* UUSI: Pommi-solu */
+.cell.bomb {
+    background-color: #D22B2B; /* Punertava */
+    border: 1px solid #A01C1C;
+    position: relative;
+}
+.cell.bomb::after {
+    content: '💣';
+    font-size: 1.5em;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
 /* Timantin solu on nyt mullan (dirt) kaltainen ja piilossa */
 .cell.diamond {
     position: relative;
@@ -199,6 +214,23 @@ h2 {
     box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
 }
 
+/* UUSI: Elämäpalkki */
+.lives-display {
+    margin-top: 15px;
+    font-size: 1.2em;
+    color: #FFD700;
+    display: flex;
+    gap: 5px; /* Väli sydänten välillä */
+    justify-content: center;
+    align-items: center;
+}
+
+.heart {
+    color: #D22B2B; /* Punainen sydän */
+    font-size: 1.5em; /* Isompi sydän */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+}
+
 /* Mobiilioptimointi */
 @media (max-width: 768px) {
     .game-container {
@@ -237,5 +269,12 @@ h2 {
 
     .message {
         font-size: 1.1em;
+    }
+
+    .lives-display {
+        font-size: 1em;
+    }
+    .heart {
+        font-size: 1.2em;
     }
 }
