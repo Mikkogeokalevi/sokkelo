@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     let diamondsCollected = 0;
-    // requiredDiamonds määritellään nyt levelData-objektissa
     let endCellActivated = false;
 
     let previousPlayerPosition = { row: -1, col: -1 };
@@ -33,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1], // Rivi 2
                 [1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1], // Rivi 3 (Seinärivi)
                 [1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1], // Rivi 4
-                [1, 2, 2, 1, 2, 3, 2, 2, 2, 3, 2, 2, 2, 2, 1], // Rivi 5 (Kiviä 3)
+                [1, 2, 2, 1, 2, 3, 2, 2, 2, 3, 2, 1, 2, 2, 1], // Rivi 5 (Kiviä 3)
                 [1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1], // Rivi 6
                 [1, 2, 2, 1, 2, 4, 2, 2, 2, 2, 2, 1, 2, 2, 1], // Rivi 7 (Timantti 4 - piilossa!)
                 [1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1], // Rivi 8
@@ -319,13 +318,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkEndCellVisibility() {
         if (diamondsCollected >= currentRequiredDiamonds && !endCellActivated) {
             endCellActivated = true;
-            // Etsi maalisolun HTML-elementti kartasta, ei alkuperäisestä LEVEL_1:stä
+            // Etsi maalisolun HTML-elementti kartasta, ei alkuperäisestä LEVELS:stä
+            // Koska maali voi olla 'maze' arrayn mukana jos se siirtyisi, käytetään alkuperäistä
+            // LEVELS-rakennetta maalin alkuperäisen sijainnin löytämiseen.
             let endRow = -1;
             let endCol = -1;
             for (let r = 0; r < mazeSize; r++) {
                 for (let c = 0; c < mazeSize; c++) {
-                    // Tärkeä muutos: etsi maali alkuperäisestä tasorakenteesta, ei muutetusta 'maze'-muuttujasta
-                    // 'maze' muuttuu, kun pelaaja liikkuu, mutta alkuperäinen LEVEL_X.map säilyy
                     if (LEVELS[currentLevelIndex].map[r][c] === CELL_TYPES.END) {
                         endRow = r;
                         endCol = c;
@@ -383,6 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         messageDisplay.textContent = `Peli ohi! ${message}`;
         document.removeEventListener('keydown', handleKeyPress);
         gameArea.removeEventListener('touchstart', handleTouchStart);
+        gameArea.removeEventListener('touchmove', handleTouchMove); // Poista touchmove
         gameArea.removeEventListener('touchend', handleTouchEnd);
     }
 
@@ -394,10 +394,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Varmista, että event listenerit lisätään vain kerran
         document.removeEventListener('keydown', handleKeyPress);
         gameArea.removeEventListener('touchstart', handleTouchStart);
+        gameArea.removeEventListener('touchmove', handleTouchMove); // Poista touchmove ennen lisäämistä
         gameArea.removeEventListener('touchend', handleTouchEnd);
 
         document.addEventListener('keydown', handleKeyPress);
         gameArea.addEventListener('touchstart', handleTouchStart);
+        gameArea.addEventListener('touchmove', handleTouchMove, { passive: false }); // LISÄTTY iOS-korjaus
         gameArea.addEventListener('touchend', handleTouchEnd);
 
         checkEndCellVisibility(); // Tarkista maalin tila alussa (ei näy, ellei timantteja jo kerätty)
@@ -424,11 +426,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let touchStartX = 0;
     let touchStartY = 0;
+
     const handleTouchStart = (e) => {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
-        e.preventDefault();
+        e.preventDefault(); // LISÄTTY iOS-korjaus
     };
+
+    // UUSI FUNKTIO iOS-yhteensopivuutta varten
+    const handleTouchMove = (e) => {
+        e.preventDefault(); // LISÄTTY iOS-korjaus: Estää selaimen oletusarvoisen vierityksen
+    };
+
     const handleTouchEnd = (e) => {
         if (messageDisplay.textContent.startsWith("Peli ohi!")) return;
 
@@ -438,22 +447,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const dx = touchEndX - touchStartX;
         const dy = touchEndY - touchStartY;
 
-        const sensitivity = 30;
+        const sensitivity = 30; // Voit säätää tätä herkkyyttä
 
         if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > sensitivity) {
+            // Horisontaalinen pyyhkäisy
             if (dx > 0) {
-                movePlayer(1, 0);
+                movePlayer(1, 0); // Oikealle
             } else {
-                movePlayer(-1, 0);
+                movePlayer(-1, 0); // Vasemmalle
             }
         } else if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > sensitivity) {
+            // Vertikaalinen pyyhkäisy
             if (dy > 0) {
-                movePlayer(0, 1);
+                movePlayer(0, 1); // Alas
             } else {
-                movePlayer(0, -1);
+                movePlayer(0, -1); // Ylös
             }
         }
-        e.preventDefault();
+        // e.preventDefault(); // POISTETTU: Koska touchmove hoitaa jo preventDefaultin
     };
     
     resetButton.addEventListener('click', () => {
