@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const maxLives = 3;
 
     let activeBombs = []; // {row, col, timerId}
+    let isDying = false; // UUSI: Estää useita playerDies() kutsuja
 
     const LEVELS = [
         // LEVEL 1 (Esimerkki bommilla)
@@ -39,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 [1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1],
                 [1, 2, 2, 1, 2, 3, 2, 7, 2, 3, 2, 1, 2, 2, 1], // Pommi (7) täällä!
                 [1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1],
-                [1, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 1, 2, 2, 1],
+                [1, 2, 2, 1, 2, 4, 2, 2, 2, 2, 2, 1, 2, 2, 1],
                 [1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1],
                 [1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1],
                 [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
@@ -348,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         }
                     }
-                    // UUSI LOGIIKKA POMMEILLE:
+                    // Pommien painovoimalogiikka
                     else if (currentCellType === CELL_TYPES.BOMB) {
                         // Jos pommi putoaa tyhjään soluun
                         if (cellBelowType === CELL_TYPES.EMPTY) {
@@ -378,8 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 playerDies();
                                 return; // Pysäytä painovoima, peli jatkuu vasta respawnin jälkeen
                             }
-                            // TÄRKEÄ MUUTOS: ÄLÄ AKITVOI POMMIA TÄSSÄ, KOSKA SE EI OLE VUOROVAIKUTUKSESSA PELAAJAN KANSSA
-                            // Pommin aktivointi tapahtuu vasta, kun pelaaja kävelee sen vierestä tai työntää sen päälle.
+                            // TÄRKEÄ MUUTOS: Poistettu activateBomb kutsu tästä kohtaa, jotta pommi ei aktivoidu pudotessaan passiivisesti.
                         }
                         // Jos pommi putoaa toisen pommin päälle
                         else if (cellBelowType === CELL_TYPES.BOMB) {
@@ -389,8 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         }
                         // Jos pommi pysähtyy jonkin muun kuin tyhjän solun päälle (dirt, rock, wall)
-                        // TÄRKEÄ MUUTOS: ÄLÄ AKITVOI POMMIA TÄSSÄ AUTOMAATTISESTI
-                        // Aktivoi pommi vain, kun pelaaja vuorovaikuttaa sen kanssa.
+                        // TÄRKEÄ MUUTOS: Poistettu activateBomb kutsu tästä kohtaa, jotta pommi ei aktivoidu pysähtyessään.
                     }
                 }
             }
@@ -493,6 +492,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function playerDies() {
+        if (isDying) return; // Jos pelaaja on jo kuolemassa, älä kutsu uudelleen
+        isDying = true; // Aseta lippu estämään uudet kutsut
+
         lives--;
         updateLivesDisplay();
         messageDisplay.textContent = `Voi ei! Menetit elämän. Elämiä jäljellä: ${lives}`;
@@ -501,10 +503,12 @@ document.addEventListener('DOMContentLoaded', () => {
             gameOver("Kaikki elämät menneet! Yritä uudelleen.");
             currentLevelIndex = 0;
             lives = maxLives;
+            isDying = false; // Resetoi lippu, jos peli alkaa alusta
         } else {
             setTimeout(() => {
                 respawnPlayer();
                 messageDisplay.textContent = `Taso ${currentLevelIndex + 1}. Kerää ${diamondsCollected}/${currentRequiredDiamonds} timanttia ja etsi kätkö!`;
+                isDying = false; // Resetoi lippu respawnin jälkeen
             }, 1500);
         }
     }
