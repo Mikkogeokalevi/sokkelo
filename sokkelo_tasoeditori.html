@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mikkokalevin Tasoeditori</title>
+    <style>
+        body {
+            font-family: 'Georgia', serif;
+            background-color: #36451C;
+            color: #F8F8F8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .editor-container {
+            background-color: #556B2F;
+            border: 3px solid #36451C;
+            border-radius: 12px;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.6);
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 90%;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #90EE90;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .control-button {
+            background-color: #FFD700;
+            color: #36451C;
+            border: 2px solid #C4B000;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+        }
+
+        .control-button.selected {
+            background-color: #E6C200;
+            border-color: #A08C00;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.4);
+            transform: translateY(1px);
+        }
+
+        .control-button:hover:not(.selected) {
+            background-color: #E6C200;
+        }
+
+        .control-button:active {
+            transform: translateY(2px);
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+        }
+
+        #editor-grid {
+            display: grid;
+            border: 2px solid #90EE90;
+            box-shadow: 0 0 10px rgba(144, 238, 144, 0.5);
+            background-color: #4CAF50;
+            margin: 0 auto 20px auto;
+            max-width: calc(20 * 30px); /* Max size for larger grids */
+            max-height: calc(20 * 30px);
+            overflow: auto; /* Allow scrolling for larger grids */
+            resize: both; /* Allow manual resizing of the grid area */
+            padding: 1px; /* Small padding to make resize handle visible */
+            min-width: 300px;
+            min-height: 300px;
+        }
+
+        .editor-cell {
+            width: 30px; /* Base cell size */
+            height: 30px;
+            background-color: #4CAF50; /* Empty */
+            border: 1px solid rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em; /* For symbols */
+        }
+
+        /* Cell types for editor */
+        .editor-cell.wall { background-color: #36451C; border-color: #2F3C1A; }
+        .editor-cell.dirt { background-color: #8B4513; border-color: #6F360F; }
+        .editor-cell.rock { background-color: #A9A9A9; border-color: #777; }
+        .editor-cell.diamond { background-color: #ADD8E6; border-color: #7EC2CC; } /* Timantti näkyy editorissa */
+        .editor-cell.start { background-color: #90EE90; }
+        .editor-cell.end { background-color: #FFD700; }
+        .editor-cell.bomb { background-color: #D22B2B; border-color: #A01C1C; } /* UUSI: Pommi */
+
+
+        /* Symbols in editor */
+        .editor-cell.rock::after { content: '🪨'; }
+        .editor-cell.diamond::after { content: '💎'; }
+        .editor-cell.start::after { content: '👤'; }
+        .editor-cell.end::after { content: '🚩'; }
+        .editor-cell.bomb::after { content: '💣'; } /* UUSI: Pommi-symboli */
+
+
+        .output-area {
+            background-color: #2e3b20;
+            border: 2px solid #90EE90;
+            border-radius: 8px;
+            padding: 15px;
+            width: 90%;
+            max-width: 680px;
+            margin-top: 20px;
+        }
+
+        textarea {
+            width: calc(100% - 20px);
+            height: 200px;
+            background-color: #1e2a12;
+            color: #90EE90;
+            border: 1px solid #6F360F;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            resize: vertical;
+            white-space: pre; /* Preserve whitespace */
+            overflow-wrap: normal; /* Do not break long lines */
+            word-wrap: normal;
+        }
+
+        .info-text {
+            color: #A9D1A9;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        /* Mobiilioptimointi */
+        @media (max-width: 768px) {
+            .editor-container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            .control-button {
+                padding: 6px 12px;
+                font-size: 0.9em;
+            }
+            .editor-cell {
+                width: 25px;
+                height: 25px;
+                font-size: 1em;
+            }
+            #editor-grid {
+                max-width: calc(20 * 25px);
+                max-height: calc(20 * 25px);
+                min-width: 250px;
+                min-height: 250px;
+            }
+            textarea {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <h1>Mikkokalevin Tasoeditori</h1>
+
+        <div class="controls">
+            <button class="control-button" data-cell-type="0">Tyhjä</button>
+            <button class="control-button selected" data-cell-type="2">Multa</button>
+            <button class="control-button" data-cell-type="1">Seinä</button>
+            <button class="control-button" data-cell-type="3">Kivi</button>
+            <button class="control-button" data-cell-type="4">Timantti</button>
+            <button class="control-button" data-cell-type="7">Pommi</button> <button class="control-button" data-cell-type="5">Aloitus</button>
+            <button class="control-button" data-cell-type="6">Maali</button>
+            <button id="clear-grid-button" class="control-button">Tyhjennä</button>
+            <button id="fill-dirt-button" class="control-button">Täytä mullalla</button>
+        </div>
+
+        <div id="editor-grid"></div>
+
+        <button id="generate-code-button" class="control-button">Generoi Taso-koodi</button>
+        
+        <div class="output-area">
+            <p>Kopioi tämä koodi pelin `sokkelo_script.js` -tiedostoon `LEVELS` -muuttujan sisään:</p>
+            <textarea id="level-output" readonly></textarea>
+            <p class="info-text">Muista tarkistaa, että tasossa on vain yksi aloituspiste ja yksi maalipiste!</p>
+            <p class="info-text">Tason koodi on nyt muotoa `{ map: [...], requiredDiamonds: X }`.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const editorGrid = document.getElementById('editor-grid');
+            const controlButtons = document.querySelectorAll('.control-button[data-cell-type]');
+            const generateCodeButton = document.getElementById('generate-code-button');
+            const clearGridButton = document.getElementById('clear-grid-button');
+            const fillDirtButton = document.getElementById('fill-dirt-button');
+            const levelOutput = document.getElementById('level-output');
+
+            const gridSize = 15;
+            let currentCellType = 2; // Oletuksena multa (DIRT)
+            let mazeData = [];
+
+            const CELL_TYPES = {
+                EMPTY: 0,
+                WALL: 1,
+                DIRT: 2,
+                ROCK: 3,
+                DIAMOND: 4,
+                START: 5,
+                END: 6,
+                BOMB: 7 // UUSI SOLUTYYPPI
+            };
+
+            // Initialize maze data with empty cells
+            function initializeMazeData() {
+                mazeData = Array(gridSize).fill(0).map(() => Array(gridSize).fill(CELL_TYPES.EMPTY));
+            }
+
+            function createEditorGrid() {
+                editorGrid.innerHTML = '';
+                editorGrid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+
+                for (let r = 0; r < gridSize; r++) {
+                    for (let c = 0; c < gridSize; c++) {
+                        const cell = document.createElement('div');
+                        cell.classList.add('editor-cell');
+                        cell.dataset.row = r;
+                        cell.dataset.col = c;
+                        cell.addEventListener('mousedown', handleCellClick);
+                        cell.addEventListener('mouseenter', handleCellEnter); // For dragging
+                        editorGrid.appendChild(cell);
+                    }
+                }
+                updateGridVisuals();
+            }
+
+            function updateGridVisuals() {
+                mazeData.forEach((row, rowIndex) => {
+                    row.forEach((cellType, colIndex) => {
+                        const cellElement = document.querySelector(`.editor-cell[data-row="${rowIndex}"][data-col="${colIndex}"]`);
+                        if (cellElement) {
+                            // Remove all previous type classes
+                            Object.values(CELL_TYPES).forEach(val => {
+                                const className = Object.keys(CELL_TYPES).find(key => CELL_TYPES[key] === val).toLowerCase();
+                                cellElement.classList.remove(className);
+                            });
+                            
+                            // Add the current type class and symbol
+                            const className = Object.keys(CELL_TYPES).find(key => CELL_TYPES[key] === cellType).toLowerCase();
+                            cellElement.classList.add(className);
+                            cellElement.innerHTML = ''; // Clear previous symbol
+                            switch(cellType) {
+                                case CELL_TYPES.ROCK:
+                                    cellElement.innerHTML = '🪨';
+                                    break;
+                                case CELL_TYPES.DIAMOND:
+                                    cellElement.innerHTML = '💎';
+                                    break;
+                                case CELL_TYPES.START:
+                                    cellElement.innerHTML = '👤';
+                                    break;
+                                case CELL_TYPES.END:
+                                    cellElement.innerHTML = '🚩';
+                                    break;
+                                case CELL_TYPES.BOMB: // UUSI: Pommi-symboli
+                                    cellElement.innerHTML = '💣';
+                                    break;
+                                default:
+                                    cellElement.innerHTML = '';
+                                    break;
+                            }
+                        }
+                    });
+                });
+            }
+
+            let isMouseDown = false; // To enable drawing by dragging
+
+            // Prevent text selection when dragging
+            document.body.addEventListener('mousedown', () => { isMouseDown = true; });
+            document.body.addEventListener('mouseup', () => { isMouseDown = false; });
+            document.body.addEventListener('mouseleave', () => { isMouseDown = false; }); // Reset if mouse leaves window
+
+            const handleCellClick = (event) => {
+                const cell = event.target;
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                placeCell(row, col);
+            };
+
+            const handleCellEnter = (event) => {
+                if (isMouseDown) { // Only draw if mouse button is down
+                    const cell = event.target;
+                    const row = parseInt(cell.dataset.row);
+                    const col = parseInt(cell.dataset.col);
+                    placeCell(row, col);
+                }
+            };
+
+            function placeCell(row, col) {
+                // Special handling for START and END: only one allowed
+                if (currentCellType === CELL_TYPES.START) {
+                    // Find and clear existing START
+                    for (let r = 0; r < gridSize; r++) {
+                        for (let c = 0; c < gridSize; c++) {
+                            if (mazeData[r][c] === CELL_TYPES.START) {
+                                mazeData[r][c] = CELL_TYPES.EMPTY; // Change old START to EMPTY
+                            }
+                        }
+                    }
+                } else if (currentCellType === CELL_TYPES.END) {
+                    // Find and clear existing END
+                    for (let r = 0; r < gridSize; r++) {
+                        for (let c = 0; c < gridSize; c++) {
+                            if (mazeData[r][c] === CELL_TYPES.END) {
+                                mazeData[r][c] = CELL_TYPES.EMPTY; // Change old END to EMPTY
+                            }
+                        }
+                    }
+                }
+
+                mazeData[row][col] = currentCellType;
+                updateGridVisuals();
+            }
+
+            controlButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    controlButtons.forEach(btn => btn.classList.remove('selected'));
+                    button.classList.add('selected');
+                    currentCellType = parseInt(button.dataset.cellType);
+                });
+            });
+
+            clearGridButton.addEventListener('click', () => {
+                initializeMazeData();
+                updateGridVisuals();
+                levelOutput.value = '';
+            });
+
+            fillDirtButton.addEventListener('click', () => {
+                mazeData = mazeData.map(row => row.map(cell => {
+                    // Fill with dirt, but preserve walls, start, end, rock, diamond, bomb if already present
+                    if (cell === CELL_TYPES.WALL || cell === CELL_TYPES.START || cell === CELL_TYPES.END || 
+                        cell === CELL_TYPES.ROCK || cell === CELL_TYPES.DIAMOND || cell === CELL_TYPES.BOMB) {
+                        return cell;
+                    }
+                    return CELL_TYPES.DIRT;
+                }));
+                updateGridVisuals();
+            });
+
+
+            generateCodeButton.addEventListener('click', () => {
+                // Laske timanttien määrä tasosta
+                let diamondCount = 0;
+                mazeData.forEach(row => {
+                    row.forEach(cell => {
+                        if (cell === CELL_TYPES.DIAMOND) {
+                            diamondCount++;
+                        }
+                    });
+                });
+
+                let code = '{\n';
+                code += '    map: [\n';
+                mazeData.forEach((row, rowIndex) => {
+                    code += '        [';
+                    row.forEach((cellType, colIndex) => {
+                        code += cellType;
+                        if (colIndex < gridSize - 1) {
+                            code += ', ';
+                        }
+                    });
+                    code += ']';
+                    if (rowIndex < gridSize - 1) {
+                        code += ',\n';
+                    } else {
+                        code += '\n';
+                    }
+                });
+                code += '    ],\n';
+                code += `    requiredDiamonds: ${diamondCount}\n`; // Lisää laskettu timanttimäärä
+                code += '},'; // Lisää pilkku, jotta voidaan lisätä useita tasoja LEVELS-taulukkoon
+                levelOutput.value = code;
+                levelOutput.select(); // Select the generated text
+                document.execCommand('copy'); // Copy to clipboard
+                alert('Taso-koodi kopioitu leikepöydälle! Muista liittää se LEVELS-taulukon sisään sokkelo_script.js -tiedostossa.');
+            });
+
+            // Initial setup
+            initializeMazeData();
+            createEditorGrid();
+        });
+    </script>
+</body>
+</html>
