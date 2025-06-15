@@ -7,19 +7,19 @@ html, body {
 body {
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
+    align-items: flex-start; /* Muutettu starttiin, jotta yläreuna ei jää piiloon */
+    min-height: 100vh; /* Varmistaa, että body on vähintään näkymän korkuinen */
     background-color: #36451C;
     font-family: 'Georgia', serif;
     color: #F8F8F8;
-    overflow-y: auto;
+    overflow-y: auto; /* Salli vieritys, jos sisältö menee yli */
     overflow-x: hidden;
     box-sizing: border-box;
 }
 
 .game-container {
     padding: 10px;
-    margin: 15px auto;
+    margin: 15px auto; /* Ylhäältä ja alhaalta 15px, sivuilta auto */
     background-color: #556B2F;
     border: 3px solid #36451C;
     border-radius: 12px;
@@ -30,6 +30,7 @@ body {
     width: 90%;
     max-width: 600px;
     box-sizing: border-box;
+    /* Poistettu min-height: content; koska body huolehtii jo korkeudesta */
 }
 
 header {
@@ -39,49 +40,51 @@ header {
     box-sizing: border-box;
 }
 
+/* UUSI: Kontti logolle ja otsikoille */
 .header-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: wrap;
-    text-align: center;
+    display: flex; /* Asettaa sisällön vierekkäin */
+    align-items: center; /* Keskittää pystysuunnassa */
+    justify-content: center; /* Keskittää vaakasuunnassa */
+    gap: 15px; /* Väli logon ja otsikoiden välillä */
+    flex-wrap: wrap; /* Salli rivitys pienillä näytöillä */
+    text-align: center; /* Keskittää otsikot, jos rivittyvät */
 }
 
 .game-logo {
-    width: 60px;
-    height: 60px;
+    width: 60px; /* Pienempi logo */
+    height: 60px; /* Pienempi logo */
     border: 2px solid #90EE90;
     border-radius: 50%;
-    display: block;
+    display: block; /* Varmista, että logo on oma elementtinsä */
     box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
     background-color: #556B2F;
     padding: 3px;
+    /* Margin-bottom poistettu, koska flexbox hoitaa välin */
 }
 
 .titles {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex-direction: column; /* Otsikot päällekkäin */
+    align-items: center; /* Keskittää otsikot sisällön mukaan */
 }
 
 h1 {
     color: #90EE90;
     margin-top: 0;
-    margin-bottom: 5px;
+    margin-bottom: 5px; /* Pienempi väli otsikoiden välillä */
     text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
     font-size: 1.8em;
     letter-spacing: 0.5px;
-    white-space: nowrap;
+    white-space: nowrap; /* Estä rivitys otsikossa */
 }
 
 h2 {
     color: #A9D1A9;
     margin-top: 0;
-    margin-bottom: 0;
+    margin-bottom: 0; /* Poistettu ylimääräinen marginaali */
     font-size: 1.2em;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
-    white-space: nowrap;
+    white-space: nowrap; /* Estä rivitys alaotsikossa */
 }
 
 
@@ -99,7 +102,7 @@ h2 {
 .cell {
     width: 30px;
     height: 30px;
-    background-color: #5A6E3B; /* Slightly lighter empty cell */
+    background-color: #4CAF50;
     position: relative;
     box-sizing: border-box;
     display: flex;
@@ -107,11 +110,11 @@ h2 {
     align-items: center;
 }
 
-/* UUSI: Terässeinä pelialueen reunoille */
+/* UUSI TYYLI: Paksut mustat reunat "terässeinäksi" */
 .cell.steel-wall {
-    background-color: #696969;
-    border: 1px solid #444;
-    box-shadow: inset 1px 1px 3px rgba(255,255,255,0.3);
+    background-color: #36451C; /* Tumma tausta, sama kuin normaali seinä */
+    border: 3px solid #000000; /* Paksu, musta reunus */
+    box-sizing: border-box;    /* Varmistaa, että reuna ei kasvata solun kokoa */
 }
 
 .cell.wall {
@@ -124,48 +127,52 @@ h2 {
     border: 1px solid #6F360F;
 }
 .cell.rock {
-    background-color: transparent; /* Poistettu taustaväri, emoji riittää */
+    background-color: #A9A9A9;
+    border: 1px solid #777;
+    position: relative;
 }
 .cell.rock::after {
     content: '🪨';
     font-size: 1.5em;
-    line-height: 1;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #333;
 }
 
 .cell.bomb {
-    background-color: transparent; /* Poistettu taustaväri, emoji riittää */
+    background-color: #D22B2B;
+    border: 1px solid #A01C1C;
+    position: relative;
+    transition: background-color 0.2s ease-in-out;
 }
 .cell.bomb::after {
     content: '💣';
     font-size: 1.5em;
-    line-height: 1;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .cell.bomb.active {
     animation: bomb-pulse 0.5s infinite alternate;
-    border-radius: 50%;
 }
 
 @keyframes bomb-pulse {
-    from { background-color: #D22B2B; transform: scale(1.0); }
-    to { background-color: #A01C1C; transform: scale(1.1); }
+    from { background-color: #D22B2B; }
+    to { background-color: #A01C1C; }
 }
 
-/* MUOKATTU: Timantti on nyt näkyvä */
+
 .cell.diamond {
-    background-color: transparent;
+    position: relative;
 }
 .cell.diamond::after {
-    content: '💎';
-    font-size: 1.4em;
-    line-height: 1;
-    animation: diamond-sparkle 2s infinite ease-in-out;
+    content: '';
 }
 
-@keyframes diamond-sparkle {
-    0%, 100% { transform: scale(1); opacity: 0.8; }
-    50% { transform: scale(1.1); opacity: 1; }
-}
 
 .player {
     width: 20px;
@@ -178,7 +185,6 @@ h2 {
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 10;
-    transition: all 0.1s linear;
 }
 
 .start {
@@ -212,11 +218,11 @@ h2 {
 .message {
     color: #FFD700;
     text-align: center;
-    margin-top: 15px;
+    margin-top: 15px; /* Pienempi ylämarginaali */
     font-size: 1.3em;
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
-    min-height: 2em;
+    min-height: 2em; /* Varmista tila, vaikka viesti olisi lyhyt */
 }
 
 .action-button {
@@ -239,12 +245,11 @@ h2 {
 }
 
 .lives-display {
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-top: 20px; /* Siirretty pelialueen alle */
     font-size: 1.2em;
     color: #FFD700;
     display: flex;
-    gap: 8px;
+    gap: 5px;
     justify-content: center;
     align-items: center;
 }
@@ -260,30 +265,30 @@ h2 {
     .game-container {
         margin: 10px;
         padding: 8px;
-        max-height: 98vh;
+        max-height: 98vh; /* Jätä pieni reuna ylös ja alas */
         overflow-y: auto;
     }
 
     .header-content {
-        flex-direction: column;
-        gap: 5px;
+        flex-direction: column; /* Pino logo ja otsikot päällekkäin mobiilissa */
+        gap: 5px; /* Pienempi väli pinotuilla elementeillä */
     }
 
     .game-logo {
-        width: 50px;
+        width: 50px; /* Vielä pienempi logo mobiilissa */
         height: 50px;
     }
 
     h1 {
         font-size: 1.5em;
-        white-space: normal;
-        text-align: center;
+        white-space: normal; /* Salli rivitys mobiilissa otsikolle */
+        text-align: center; /* Keskittää otsikon jos rivittyy */
     }
 
     h2 {
         font-size: 1em;
-        white-space: normal;
-        text-align: center;
+        white-space: normal; /* Salli rivitys mobiilissa alaotsikolle */
+        text-align: center; /* Keskittää alaotsikon jos rivittyy */
     }
 
     .cell {
