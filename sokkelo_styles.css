@@ -1,0 +1,241 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #36451C;
+    font-family: 'Georgia', serif;
+    color: #F8F8F8;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.game-container {
+    padding: 10px;
+    margin: 15px auto;
+    background-color: #556B2F;
+    border: 3px solid #36451C;
+    border-radius: 12px;
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90%;
+    max-width: 600px;
+    box-sizing: border-box;
+    min-height: content;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    width: 100%;
+}
+
+.game-logo {
+    width: 80px;
+    height: 80px;
+    border: 2px solid #90EE90;
+    border-radius: 50%;
+    display: inline-block;
+    vertical-align: middle;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    background-color: #556B2F;
+    padding: 3px;
+    margin-bottom: 10px;
+}
+
+h1 {
+    color: #90EE90;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+    font-size: 1.8em;
+    letter-spacing: 0.5px;
+}
+
+h2 {
+    color: #A9D1A9;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.2em;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
+}
+
+#game-area {
+    display: grid;
+    border: 2px solid #90EE90;
+    box-shadow: 0 0 10px rgba(144, 238, 144, 0.5);
+    background-color: #4CAF50;
+    margin-bottom: 20px;
+    max-width: calc(15 * 30px);
+    max-height: calc(15 * 30px);
+    overflow: hidden;
+}
+
+.cell {
+    width: 30px;
+    height: 30px;
+    background-color: #4CAF50;
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cell.wall {
+    background-color: #36451C;
+    border: 1px solid #2F3C1A;
+}
+
+.cell.dirt {
+    background-color: #8B4513;
+    border: 1px solid #6F360F;
+}
+.cell.rock {
+    background-color: #A9A9A9;
+    border: 1px solid #777;
+    position: relative;
+}
+.cell.rock::after {
+    content: '🪨';
+    font-size: 1.5em;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #333;
+}
+
+/* Timantin solu on nyt mullan (dirt) kaltainen ja piilossa */
+.cell.diamond {
+    position: relative;
+}
+.cell.diamond::after {
+    content: ''; /* Tyhjä sisältö */
+}
+
+
+.player {
+    width: 20px;
+    height: 20px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFD700"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>');
+    background-size: cover;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
+.start {
+    background-color: #90EE90;
+}
+
+/* Maali on oletuksena piilossa ja näyttää mullalta */
+.cell.end-hidden {
+    background-color: #8B4513; /* Mullan väri */
+    border: 1px solid #6F360F; /* Mullan reuna */
+    content: ''; /* Piilotetaan ikoni */
+}
+
+/* Maali, kun se on aktivoitu ja näkyvissä */
+.cell.end {
+    background-color: #FFD700; /* Maalin väri */
+    position: relative;
+}
+
+.cell.end::after {
+    content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2336451C"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>');
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    display: block;
+    z-index: 5;
+}
+
+
+.message {
+    color: #FFD700;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 1.3em;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+    min-height: 2em;
+}
+
+.action-button {
+    background-color: #FFD700;
+    color: #36451C;
+    border: 2px solid #C4B000;
+    border-radius: 8px;
+    padding: 10px 20px;
+    margin-top: 15px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+}
+
+.action-button:active {
+    background-color: #E6C200;
+    transform: translateY(2px);
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+}
+
+/* Mobiilioptimointi */
+@media (max-width: 768px) {
+    .game-container {
+        margin: 10px;
+        padding: 8px;
+        max-height: 98vh;
+        overflow-y: auto;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    h2 {
+        font-size: 1em;
+    }
+
+    .cell {
+        width: 25px;
+        height: 25px;
+    }
+    #game-area {
+        max-width: calc(15 * 25px);
+        max-height: calc(15 * 25px);
+    }
+
+    .player {
+        width: 18px;
+        height: 18px;
+    }
+
+    .action-button {
+        padding: 8px 15px;
+        font-size: 1em;
+    }
+
+    .message {
+        font-size: 1.1em;
+    }
+}
