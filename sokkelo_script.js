@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         START: 5,
         END: 6,
         BOMB: 7,
-        BRITTLE_WALL: 8 // <-- UUSI RIKKOUTUVA SEINÄ
+        BRITTLE_WALL: 8
     };
 
     let diamondsCollected = 0;
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     case CELL_TYPES.WALL:
                         cell.classList.add('wall');
                         break;
-                    case CELL_TYPES.BRITTLE_WALL: // <-- PIIRRÄ UUSI SEINÄ
+                    case CELL_TYPES.BRITTLE_WALL:
                         cell.classList.add('brittle-wall');
                         break;
                     case CELL_TYPES.DIRT:
@@ -208,18 +208,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const targetCellType = maze[newRow][newCol];
 
-        // --- UUSI LOHKO RIKKOUTUVALLE SEINÄLLE ---
         if (targetCellType === CELL_TYPES.BRITTLE_WALL) {
-            maze[newRow][newCol] = CELL_TYPES.EMPTY; // Muuta seinä tyhjäksi
-            createMazeHTML(); // Piirrä kenttä uudelleen heti
+            maze[newRow][newCol] = CELL_TYPES.EMPTY;
+            createMazeHTML();
             messageDisplay.textContent = "Mursit seinän!";
             setTimeout(() => {
                 messageDisplay.textContent = "";
-                isMoving = false; // Salli liike taas pienen viiveen jälkeen
+                isMoving = false;
             }, 500);
-            return; // Lopeta liike tähän, pelaaja ei siirry
+            return;
         }
-        // --- LOHKO PÄÄTTYY ---
 
         if (targetCellType === CELL_TYPES.WALL) {
             messageDisplay.textContent = "Et voi kaivaa tämän seinän läpi!";
@@ -463,6 +461,16 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.removeEventListener('keydown', handleKeyPress);
         document.addEventListener('keydown', handleKeyPress);
+        
+        // Poista vanhat kosketuskuuntelijat varmuuden vuoksi
+        gameArea.removeEventListener('touchstart', handleTouchStart);
+        gameArea.removeEventListener('touchmove', handleTouchMove);
+        gameArea.removeEventListener('touchend', handleTouchEnd);
+
+        // Lisää kosketuskuuntelijat
+        gameArea.addEventListener('touchstart', handleTouchStart, { passive: false });
+        gameArea.addEventListener('touchmove', handleTouchMove, { passive: false });
+        gameArea.addEventListener('touchend', handleTouchEnd);
     }
 
     const handleKeyPress = (e) => {
@@ -475,6 +483,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         e.preventDefault();
     };
+
+    // --- UUSI KOSKETUKSEN KÄSITTELYN LOHKO ---
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const swipeThreshold = 30; // Minimi etäisyys pyyhkäisyyn pikseleinä
+
+    function handleTouchStart(e) {
+        if (messageDisplay.textContent.startsWith("Peli ohi!")) return;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        e.preventDefault(); // Estä sivun vieritys
+    }
+
+    function handleTouchMove(e) {
+        e.preventDefault(); // Estä sivun vieritys pyyhkäisyn aikana
+    }
+
+    function handleTouchEnd(e) {
+        if (messageDisplay.textContent.startsWith("Peli ohi!")) return;
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+
+        const dx = touchEndX - touchStartX;
+        const dy = touchEndY - touchStartY;
+
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > swipeThreshold) {
+            // Vaakasuuntainen pyyhkäisy
+            if (dx > 0) {
+                movePlayer(1, 0); // Oikealle
+            } else {
+                movePlayer(-1, 0); // Vasemmalle
+            }
+        } else if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > swipeThreshold) {
+            // Pystysuuntainen pyyhkäisy
+            if (dy > 0) {
+                movePlayer(0, 1); // Alas
+            } else {
+                movePlayer(0, -1); // Ylös
+            }
+        }
+        e.preventDefault(); // Estä oletustoiminto (esim. klikkaus, jos ei pyyhkäisyä)
+    }
+    // --- KOSKETUKSEN KÄSITTELYN LOHKO PÄÄTTYY ---
     
     resetButton.addEventListener('click', () => {
         currentLevelIndex = 0;
