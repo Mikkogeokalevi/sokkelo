@@ -2,12 +2,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameArea = document.getElementById('game-area');
     const messageDisplay = document.getElementById('game-message');
     const resetButton = document.getElementById('reset-button');
-    const livesDisplay = document.getElementById('lives-display'); // HAETAAN SUORAAN ID:LLÄ
+    const livesDisplay = document.getElementById('lives-display');
 
     const mazeSize = 15;
     let playerPosition = { row: 0, col: 0 };
     let maze = [];
-    let initialPlayerPosition = { row: 0, col: 0 }; // Tallenna tason aloituspaikka uudelleensyntymistä varten
+    let initialPlayerPosition = { row: 0, col: 0 };
 
     const CELL_TYPES = {
         EMPTY: 0,
@@ -17,18 +17,17 @@ document.addEventListener('DOMContentLoaded', () => {
         DIAMOND: 4,
         START: 5,
         END: 6,
-        BOMB: 7 // UUSI SOLUTYYPPI
+        BOMB: 7
     };
 
     let diamondsCollected = 0;
     let endCellActivated = false;
 
-    let lives = 3; // Pelaajan elämät
-    const maxLives = 3; // Maksimi elämät
+    let lives = 3;
+    const maxLives = 3;
 
-    let activeBombs = []; // Lista aktiivisista pommeista {row, col, timerId}
+    let activeBombs = []; // {row, col, timerId}
 
-    // TÄMÄ ON NYT TASOJEN LISTA!
     const LEVELS = [
         // LEVEL 1 (Esimerkki bommilla)
         {
@@ -42,9 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 [1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1],
                 [1, 2, 2, 1, 2, 4, 2, 2, 2, 2, 2, 1, 2, 2, 1],
                 [1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1],
-                [1, 2, 2, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 2, 1],
+                [1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1],
                 [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
-                [1, 2, 2, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 2, 1],
+                [1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1],
                 [1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 1],
                 [1, 2, 4, 1, 2, 3, 2, 2, 2, 3, 2, 1, 2, 6, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -122,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             row.forEach((cellType, colIndex) => {
                 const cell = document.createElement('div');
                 cell.classList.add('cell');
-                
+
                 if (cellType === CELL_TYPES.DIAMOND) {
                     cell.classList.add('dirt');
                 } else if (cellType === CELL_TYPES.END) {
@@ -171,16 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function movePlayer(dx, dy) {
-        // Estä pelaajan liike, jos jokin pommi on tikittämässä ja pelaaja on sen alueella tai siirtymässä alueelle
-        if (activeBombs.some(bomb => 
-            Math.abs(bomb.row - playerPosition.row) <= 1 && Math.abs(bomb.col - playerPosition.col) <= 1)) {
-            // Voit lisätä tähän jonkin viestin, jos haluat
-            // messageDisplay.textContent = "Odota pommin räjähdystä tai siirry kauemmas!";
-            // setTimeout(() => messageDisplay.textContent = "", 1500);
-            // return; // Estä liike
-        }
-
-
         const newRow = playerPosition.row + dy;
         const newCol = playerPosition.col + dx;
 
@@ -202,22 +191,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const rockPushDirection = dx !== 0 ? dx : 0;
             const rockNewCol = newCol + rockPushDirection;
 
-            if (dy === 0 && // Vain horisontaalinen työntö
+            if (dy === 0 &&
                 rockNewCol >= 0 && rockNewCol < mazeSize &&
-                (maze[newRow][rockNewCol] === CELL_TYPES.EMPTY || maze[newRow][rockNewCol] === CELL_TYPES.BOMB)) {
+                (maze[newRow][rockNewCol] === CELL_TYPES.EMPTY || maze[newCol][rockNewCol] === CELL_TYPES.BOMB)) {
 
-                // Aktivoi pommi, jos kivi työnnetään sen päälle
                 if (maze[newRow][rockNewCol] === CELL_TYPES.BOMB) {
-                    activateBomb(newRow, rockNewCol); // Aktivoi pommi viiveellä
-                    // Pelaaja liikkuu silti kiven paikalle, mutta räjähdys tapahtuu viiveellä
-                    // Pelaaja voi yrittää paeta
+                    activateBomb(newRow, rockNewCol);
                 }
 
-                // Työnnä kivi
                 maze[newRow][rockNewCol] = CELL_TYPES.ROCK;
                 maze[newRow][newCol] = CELL_TYPES.EMPTY;
 
-                // Päivitä HTML-elementit
                 const oldRockCellEl = document.querySelector(`.cell[data-row="${newRow}"][data-col="${newCol}"]`);
                 const newRockCellEl = document.querySelector(`.cell[data-row="${newRow}"][data-col="${rockNewCol}"]`);
 
@@ -229,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     newRockCellEl.classList.add('rock');
                     newRockCellEl.innerHTML = '🪨';
                 }
-                
+
                 updatePlayerPosition(newRow, newCol);
                 applyGravityWithDelay();
                 return;
@@ -241,11 +225,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (targetCellType === CELL_TYPES.BOMB) {
-            // Pelaaja astuu pommin päälle, aktivoi sen
-            activateBomb(newRow, newCol);
+            // Pelaaja yrittää astua pommin päälle. Aktivoi pommi ja estä liike pommin kohdalle.
+            if (!activeBombs.some(bomb => bomb.row === newRow && bomb.col === newCol)) {
+                activateBomb(newRow, newCol);
+            }
+            messageDisplay.textContent = "💥 Pommi aktivoitu! Väistä!";
+            setTimeout(() => {
+                if (!messageDisplay.textContent.includes("Peli ohi!")) {
+                    messageDisplay.textContent = "";
+                }
+            }, 1500);
+            return; // Estä pelaajan liike pommin päälle
         }
 
-        // Jos ei ole seinä tai kiven työntöä tai pommia, kaiva ja liiku
+        // Jos ei ole seinä, kiven työntöä tai pommia (tai pommi on jo käsitelty), kaiva ja liiku
         if (targetCellType === CELL_TYPES.DIRT || targetCellType === CELL_TYPES.DIAMOND || targetCellType === CELL_TYPES.END || targetCellType === CELL_TYPES.EMPTY) {
             const cellElement = document.querySelector(`.cell[data-row="${newRow}"][data-col="${newCol}"]`);
 
@@ -253,8 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 diamondsCollected++;
                 messageDisplay.textContent = `Kerättyjä timantteja: ${diamondsCollected}/${currentRequiredDiamonds}`;
                 cellElement.innerHTML = '💎';
-                cellElement.classList.add('diamond');
-                
+
                 setTimeout(() => {
                     cellElement.classList.remove('diamond');
                     cellElement.innerHTML = '';
@@ -262,21 +254,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 200);
                 checkEndCellVisibility();
             }
-            
+
             if (targetCellType === CELL_TYPES.END) {
                 cellElement.classList.remove('end-hidden', 'dirt');
-            } else if (cellElement.classList.contains('dirt')) { // Vain jos kaivetaan multaa
+            } else if (cellElement.classList.contains('dirt')) {
                 cellElement.classList.remove('dirt');
             }
 
-            // Asetetaan solu tyhjäksi vasta, jos se ei ollut pommi
-            if (targetCellType !== CELL_TYPES.BOMB) {
-                maze[newRow][newCol] = CELL_TYPES.EMPTY;
-            }
+            maze[newRow][newCol] = CELL_TYPES.EMPTY;
         }
-        
+
         updatePlayerPosition(newRow, newCol);
-        applyGravityWithDelay(); // Apply gravity AFTER player moves
+        applyGravityWithDelay();
         checkWinCondition();
     }
 
@@ -301,7 +290,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return player;
     }
 
-    // Asetetaan painovoimalle pieni viive, jotta pelaaja ehtii liikkua
     function applyGravityWithDelay() {
         setTimeout(() => {
             applyGravity();
@@ -311,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyGravity() {
         let somethingMoved;
         let iterationCount = 0;
-        const maxIterations = mazeSize * mazeSize; // Estä ääretön silmukka
+        const maxIterations = mazeSize * mazeSize;
 
         do {
             somethingMoved = false;
@@ -325,52 +313,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     const currentCellType = maze[r][c];
                     const cellBelowType = maze[r + 1][c];
 
-                    // Kivi, Timantti tai Pommi putoaa, JOS ALLA ON TYHJÄÄ
-                    if ((currentCellType === CELL_TYPES.ROCK || currentCellType === CELL_TYPES.DIAMOND || currentCellType === CELL_TYPES.BOMB) &&
+                    // Kivi tai Timantti putoaa, JOS ALLA ON TYHJÄÄ
+                    if ((currentCellType === CELL_TYPES.ROCK || currentCellType === CELL_TYPES.DIAMOND) &&
                         (cellBelowType === CELL_TYPES.EMPTY)) {
 
-                        // Jos putoava objekti on pommi ja se putoaa, se aktivoituu.
-                        if (currentCellType === CELL_TYPES.BOMB) {
-                            activateBomb(r + 1, c); // Aktivoi pommi uuteen sijaintiin
-                        }
-                        
                         // Jos pelaaja on putoavan kiven alla
                         if (playerPosition.row === r + 1 && playerPosition.col === c && currentCellType === CELL_TYPES.ROCK) {
                             messageDisplay.textContent = "Kivi putosi päällesi! 😵";
                             setTimeout(() => messageDisplay.textContent = "", 2000);
                             playerDies();
-                            return; // Pysäytä painovoima, peli jatkuu vasta respawnin jälkeen
-                        }
-
-                        // Jos pelaaja on putoavan pommin alla (pommi räjähtää, kun se osuu maahan/pelaajaan)
-                        if (playerPosition.row === r + 1 && playerPosition.col === c && currentCellType === CELL_TYPES.BOMB) {
-                            messageDisplay.textContent = "💥 Pommi putosi päällesi! Räjähti!";
-                            setTimeout(() => messageDisplay.textContent = "", 2000);
-                            explodeBomb(r + 1, c); // Räjäytä pommi
-                            playerDies(); // Pelaaja kuolee
                             return;
                         }
-                        
-                        // Jos putoava esine (ei pommi) osuu pommiin, pommi räjähtää
-                        if (cellBelowType === CELL_TYPES.BOMB && currentCellType !== CELL_TYPES.BOMB) {
-                            messageDisplay.textContent = "💥 Pommi räjähti toisen objektin tippuessa päälle!";
-                            setTimeout(() => messageDisplay.textContent = "", 2000);
-                            explodeBomb(r + 1, c); // Räjäytä alempi pommi
-                            maze[r][c] = CELL_TYPES.EMPTY; // Putoava esine katoaa räjähdyksessä
-                            somethingMoved = true;
-                            continue;
-                        }
 
-                        // Jos putoava pommi osuu toiseen pommiin, alempi pommi aktivoituu
-                        if (cellBelowType === CELL_TYPES.BOMB && currentCellType === CELL_TYPES.BOMB) {
-                            activateBomb(r + 1, c); // Aktivoi alempi pommi
-                            maze[r][c] = CELL_TYPES.EMPTY; // Ylempi pommi katoaa
-                            somethingMoved = true;
-                            continue;
-                        }
-
-
-                        // Normaaliliike
                         maze[r + 1][c] = currentCellType;
                         maze[r][c] = CELL_TYPES.EMPTY;
                         somethingMoved = true;
@@ -378,13 +332,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         const oldCellEl = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
                         const newCellEl = document.querySelector(`.cell[data-row="${r + 1}"][data-col="${c}"]`);
 
-                        // Poista vanhat luokat ja sisältö
                         if (oldCellEl) {
                             oldCellEl.classList.remove('rock', 'diamond', 'bomb', 'dirt', 'active');
                             oldCellEl.innerHTML = '';
                         }
-
-                        // Lisää uudet luokat ja sisältö
                         if (newCellEl) {
                             if (currentCellType === CELL_TYPES.ROCK) {
                                 newCellEl.classList.add('rock');
@@ -392,9 +343,56 @@ document.addEventListener('DOMContentLoaded', () => {
                             } else if (currentCellType === CELL_TYPES.DIAMOND) {
                                 newCellEl.classList.add('dirt');
                                 newCellEl.innerHTML = '';
-                            } else if (currentCellType === CELL_TYPES.BOMB) {
-                                newCellEl.classList.add('bomb');
-                                newCellEl.innerHTML = '💣';
+                            }
+                        }
+                    }
+                    // UUSI LOGIIKKA POMMEILLE:
+                    else if (currentCellType === CELL_TYPES.BOMB) {
+                        // Jos pommi putoaa tyhjään soluun
+                        if (cellBelowType === CELL_TYPES.EMPTY) {
+                            // Siirrä pommi uuteen paikkaan ensin
+                            maze[r + 1][c] = CELL_TYPES.BOMB;
+                            maze[r][c] = CELL_TYPES.EMPTY;
+                            somethingMoved = true;
+
+                            const oldBombEl = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+                            const newBombEl = document.querySelector(`.cell[data-row="${r + 1}"][data-col="${c}"]`);
+                            
+                            // Päivitä visuaalisesti
+                            if (oldBombEl) {
+                                oldBombEl.classList.remove('bomb', 'active'); // Poista aktiivisuus
+                                oldBombEl.innerHTML = '';
+                            }
+                            if (newBombEl) {
+                                newBombEl.classList.add('bomb');
+                                newBombEl.innerHTML = '💣';
+                            }
+
+                            // Jos pelaaja on uudessa pommin paikassa, räjäytä välittömästi.
+                            // Muuten, aktivoi pommi viiveellä.
+                            if (playerPosition.row === r + 1 && playerPosition.col === c) {
+                                messageDisplay.textContent = "💥 Pommi putosi päällesi! Räjähti!";
+                                setTimeout(() => messageDisplay.textContent = "", 2000);
+                                explodeBomb(r + 1, c);
+                                playerDies();
+                                return; // Pysäytä painovoima, peli jatkuu vasta respawnin jälkeen
+                            } else {
+                                // Aktivoi pommi vasta kun se on pudonnut ja pysähtynyt
+                                activateBomb(r + 1, c);
+                            }
+
+                        }
+                        // Jos pommi putoaa toisen pommin päälle, alempi pommi aktivoituu
+                        else if (cellBelowType === CELL_TYPES.BOMB) {
+                            if (!activeBombs.some(bomb => bomb.row === r + 1 && bomb.col === c)) {
+                                activateBomb(r + 1, c);
+                            }
+                            // Ylempi pommi ei katoa, se vain "lepää" alemman päällä eikä pudonnut
+                        }
+                        // Jos pommi pysähtyy jonkin muun kuin tyhjän solun päälle (dirt, rock, wall), aktivoi se
+                        else if (cellBelowType === CELL_TYPES.DIRT || cellBelowType === CELL_TYPES.ROCK || cellBelowType === CELL_TYPES.WALL) {
+                             if (!activeBombs.some(bomb => bomb.row === r && bomb.col === c)) {
+                                activateBomb(r, c); // Aktivoi pommi nykyisessä sijainnissa
                             }
                         }
                     }
@@ -403,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } while (somethingMoved);
     }
 
-    // UUSI: Aktivoi pommi tikityksen kanssa
+
     function activateBomb(row, col) {
         // Estä useita aktivointeja samalle pommille
         if (activeBombs.some(bomb => bomb.row === row && bomb.col === col)) {
@@ -418,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const timerId = setTimeout(() => {
             // Poista pommi aktiivisista pommeista
             activeBombs = activeBombs.filter(bomb => !(bomb.row === row && bomb.col === col));
-            
+
             if (bombElement) {
                 bombElement.classList.remove('active'); // Poista aktiivinen-luokka
             }
@@ -428,10 +426,10 @@ document.addEventListener('DOMContentLoaded', () => {
         activeBombs.push({ row, col, timerId });
         messageDisplay.textContent = `💥 Pommi aktivoitu (${row},${col})! Juokse!`;
         setTimeout(() => {
-            if (!messageDisplay.textContent.includes("Peli ohi!")) { // Älä tyhjennä, jos peli jo ohi
+            if (!messageDisplay.textContent.includes("Peli ohi!")) {
                  messageDisplay.textContent = "";
             }
-        }, 1500); // Tyhjennä viesti
+        }, 1500);
     }
 
 
@@ -447,7 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Tuhota ensin kaikki pommit, jotta ne eivät laukaise toisiaan peräkkäin räjähtäessään
+        // Tuhota ensin kaikki pommit räjähdysalueella, jotta ne eivät laukaise toisiaan peräkkäin räjähtäessään
         cellsToExplode.forEach(pos => {
             if (maze[pos.row][pos.col] === CELL_TYPES.BOMB) {
                 // Tyhjennä aktiivisten pommien ajastin, jos se on räjähdysalueella
@@ -470,26 +468,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Nyt käsittele muut tuhoutuvat solut ja pelaaja
+        let playerHit = false;
         cellsToExplode.forEach(pos => {
             const cellType = maze[pos.row][pos.col];
             const cellElement = document.querySelector(`.cell[data-row="${pos.row}"][data-col="${pos.col}"]`);
 
             if (pos.row === playerPosition.row && pos.col === playerPosition.col) {
-                messageDisplay.textContent = "💥 Jäit räjähdykseen! 😵";
-                setTimeout(() => messageDisplay.textContent = "", 2000);
-                playerDies();
+                playerHit = true;
             } else if (cellType === CELL_TYPES.DIAMOND) {
+                // Timantti paljastuu mutta ei tuhoudu
                 cellElement.classList.remove('dirt');
                 cellElement.innerHTML = '💎';
-                // maze[pos.row][pos.col] pysyy DIAMONDina
-            } else if (cellType !== CELL_TYPES.EMPTY) { // Kaikki muu paitsi tyhjä solu tuhoutuu
+            } else if (cellType !== CELL_TYPES.EMPTY && cellType !== CELL_TYPES.WALL) { // Kaikki muu paitsi tyhjä solu ja seinä tuhoutuu
                 maze[pos.row][pos.col] = CELL_TYPES.EMPTY;
                 if (cellElement) {
-                    cellElement.classList.remove('wall', 'dirt', 'rock', 'end-hidden', 'end'); // Poista myös end-hidden, jos maali räjähtää
+                    cellElement.classList.remove('dirt', 'rock', 'end-hidden', 'end');
                     cellElement.innerHTML = '';
                 }
             }
         });
+
+        if (playerHit) {
+            messageDisplay.textContent = "💥 Jäit räjähdykseen! 😵";
+            setTimeout(() => messageDisplay.textContent = "", 2000);
+            playerDies();
+        }
         applyGravityWithDelay();
     }
 
@@ -517,10 +520,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let respawnCandidate = { ...initialPlayerPosition };
+        // Varmista, että respawn-paikka on tyhjä, jos se ei jo ole
         if (maze[initialPlayerPosition.row][initialPlayerPosition.col] !== CELL_TYPES.EMPTY) {
             let found = false;
             const directions = [[0,0], [0,1], [0,-1], [1,0], [-1,0], [1,1], [1,-1], [-1,1], [-1,-1]]; // Aloituspaikka ja ympäröivät
-            
+
             for (const [dr, dc] of directions) {
                 const checkRow = initialPlayerPosition.row + dr;
                 const checkCol = initialPlayerPosition.col + dc;
@@ -546,12 +550,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-        playerPosition = { ...respawnCandidate }; // Aseta pelaaja respawn-paikkaan
-        
+        playerPosition = { ...respawnCandidate };
+
         // Luo kartta uudelleen ja aseta pelaaja
-        createMazeHTML(); 
-        placePlayer(); 
-        applyGravityWithDelay(); 
+        createMazeHTML();
+        placePlayer();
+        applyGravityWithDelay();
     }
 
     function checkEndCellVisibility() {
@@ -572,7 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const endCellEl = document.querySelector(`.cell[data-row="${endRow}"][data-col="${endCol}"]`);
             if (endCellEl) {
-                endCellEl.classList.remove('end-hidden', 'dirt'); 
+                endCellEl.classList.remove('end-hidden', 'dirt');
                 endCellEl.classList.add('end');
                 messageDisplay.textContent = `Maali (kätkö) ilmestyi tasolla ${currentLevelIndex + 1}! Kerätty: ${diamondsCollected}/${currentRequiredDiamonds}`;
             }
@@ -664,11 +668,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleTouchStart = (e) => {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
-        e.preventDefault(); 
+        e.preventDefault();
     };
 
     const handleTouchMove = (e) => {
-        e.preventDefault(); 
+        e.preventDefault();
     };
 
     const handleTouchEnd = (e) => {
@@ -680,23 +684,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const dx = touchEndX - touchStartX;
         const dy = touchEndY - touchStartY;
 
-        const sensitivity = 30; 
+        const sensitivity = 30;
 
         if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > sensitivity) {
             if (dx > 0) {
-                movePlayer(1, 0); 
+                movePlayer(1, 0);
             } else {
-                movePlayer(-1, 0); 
+                movePlayer(-1, 0);
             }
         } else if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > sensitivity) {
             if (dy > 0) {
-                movePlayer(0, 1); 
+                movePlayer(0, 1);
             } else {
-                movePlayer(0, -1); 
+                movePlayer(0, -1);
             }
         }
     };
-    
+
     resetButton.addEventListener('click', () => {
         currentLevelIndex = 0;
         lives = maxLives;
