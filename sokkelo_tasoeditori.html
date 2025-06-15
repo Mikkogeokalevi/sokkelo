@@ -107,6 +107,7 @@
         .editor-cell.start { background-color: #90EE90; }
         .editor-cell.end { background-color: #FFD700; }
         .editor-cell.bomb { background-color: #D22B2B; border-color: #A01C1C; } /* UUSI: Pommi */
+        .editor-cell.brittle-wall { background-color: #6B4F3A; border: 1px dashed #4A3728; }
 
 
         /* Symbols in editor */
@@ -115,6 +116,7 @@
         .editor-cell.start::after { content: '👤'; }
         .editor-cell.end::after { content: '🚩'; }
         .editor-cell.bomb::after { content: '💣'; } /* UUSI: Pommi-symboli */
+        .editor-cell.brittle-wall::after { content: '🧱'; }
 
 
         .output-area {
@@ -188,7 +190,9 @@
             <button class="control-button" data-cell-type="1">Seinä</button>
             <button class="control-button" data-cell-type="3">Kivi</button>
             <button class="control-button" data-cell-type="4">Timantti</button>
-            <button class="control-button" data-cell-type="7">Pommi</button> <button class="control-button" data-cell-type="5">Aloitus</button>
+            <button class="control-button" data-cell-type="7">Pommi</button>
+            <button class="control-button" data-cell-type="8">Rikkuva seinä</button>
+            <button class="control-button" data-cell-type="5">Aloitus</button>
             <button class="control-button" data-cell-type="6">Maali</button>
             <button id="clear-grid-button" class="control-button">Tyhjennä</button>
             <button id="fill-dirt-button" class="control-button">Täytä mullalla</button>
@@ -227,7 +231,8 @@
                 DIAMOND: 4,
                 START: 5,
                 END: 6,
-                BOMB: 7 // UUSI SOLUTYYPPI
+                BOMB: 7, // UUSI SOLUTYYPPI
+                BRITTLE_WALL: 8
             };
 
             // Initialize maze data with empty cells
@@ -283,6 +288,9 @@
                                     break;
                                 case CELL_TYPES.BOMB: // UUSI: Pommi-symboli
                                     cellElement.innerHTML = '💣';
+                                    break;
+                                case CELL_TYPES.BRITTLE_WALL:
+                                    cellElement.innerHTML = '🧱';
                                     break;
                                 default:
                                     cellElement.innerHTML = '';
@@ -360,7 +368,7 @@
                 mazeData = mazeData.map(row => row.map(cell => {
                     // Fill with dirt, but preserve walls, start, end, rock, diamond, bomb if already present
                     if (cell === CELL_TYPES.WALL || cell === CELL_TYPES.START || cell === CELL_TYPES.END || 
-                        cell === CELL_TYPES.ROCK || cell === CELL_TYPES.DIAMOND || cell === CELL_TYPES.BOMB) {
+                        cell === CELL_TYPES.ROCK || cell === CELL_TYPES.DIAMOND || cell === CELL_TYPES.BOMB || cell === CELL_TYPES.BRITTLE_WALL) {
                         return cell;
                     }
                     return CELL_TYPES.DIRT;
